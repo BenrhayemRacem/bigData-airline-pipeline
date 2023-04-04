@@ -1,0 +1,40 @@
+
+services:
+  bigdata-master:
+    image: liliasfaxi/spark-hadoop:hv-2.7.2
+    container_name: bigdata-project-master
+    
+    ports:
+      - "50070:50070"
+      - "8088:8088"
+      - "7077:7077"
+      - "16010:16010"
+    hostname: hadoop-master
+    tty: true
+    networks:
+      - bigdataProject
+  bigdata-slave1:
+    image: liliasfaxi/spark-hadoop:hv-2.7.2
+    container_name: bigdata-project-slave1
+    ports:
+      - "8040:8042"
+    hostname: hadoop-slave1
+    tty: true
+    networks:
+      - bigdataProject
+
+  bigdata-slave2:
+    image: liliasfaxi/spark-hadoop:hv-2.7.2
+    container_name: bigdata-project-slave2
+    ports:
+      - "8041:8042"
+    hostname: hadoop-slave2
+    tty: true
+    networks:
+      - bigdataProject
+
+networks:
+  bigdataProject : {}
+  
+  
+
