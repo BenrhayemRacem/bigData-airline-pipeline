@@ -16,14 +16,14 @@ import java.util.List;
 public class Stream {
     public static void main(String[] args) throws InterruptedException {
         SparkConf conf = new SparkConf()
-            .setAppName("NetworkWordCount") 
-            .setMaster("local[*]");
+            .setAppName("NetworkWordCount") ;
+           // .setMaster("local[*]");
         JavaStreamingContext jssc =
             new JavaStreamingContext(conf, Durations.seconds(1));
 
         JavaReceiverInputDStream<String> lines =
-            jssc.socketTextStream("localhost", 9999);
-            //jssc.socketTextStream("192.168.150.148", 9999);
+           // jssc.socketTextStream("localhost", 9999);
+            jssc.socketTextStream("192.168.51.148", 9999);
         
       
             JavaPairDStream<String, Double> delayedFlights = lines.mapToPair(x->{
