@@ -1,9 +1,8 @@
-
 services:
   bigdata-master:
     image: liliasfaxi/spark-hadoop:hv-2.7.2
     container_name: bigdata-project-master
-    
+
     ports:
       - "50070:50070"
       - "8088:8088"
@@ -33,7 +32,7 @@ services:
     tty: true
     networks:
       - bigdataProject
-  
+
   bigdata-mongo:
     image: mongo
     container_name: bigdata-project-mongo-container
@@ -62,8 +61,5 @@ services:
     restart: unless-stopped
 
 networks:
-  bigdataProject : {}
-  bigdata-mongo : {}
-  
-  
-
+  bigdataProject: {}
+  bigdata-mongo: {}
