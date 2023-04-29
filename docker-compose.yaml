@@ -13,6 +13,7 @@ services:
     tty: true
     networks:
       - bigdataProject
+      - bigdata-mongo
   bigdata-slave1:
     image: liliasfaxi/spark-hadoop:hv-2.7.2
     container_name: bigdata-project-slave1
@@ -32,9 +33,37 @@ services:
     tty: true
     networks:
       - bigdataProject
+  
+  bigdata-mongo:
+    image: mongo
+    container_name: bigdata-project-mongo-container
+    hostname: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: racem
+    volumes:
+      - ./mongo/db:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - bigdata-mongo
+  bigdata-mongo-express:
+    image: mongo-express
+    container_name: bigdata-project-mongo-express-container
+    hostname: mongo-express
+    ports:
+      - "8081:8081"
+    networks:
+      - bigdata-mongo
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: racem
+      ME_CONFIG_MONGODB_URL: mongodb://root:racem@mongo:27017/
+    restart: unless-stopped
 
 networks:
   bigdataProject : {}
+  bigdata-mongo : {}
   
   
 
