@@ -1,46 +1,92 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const Delay = require("./models/delay.model");
-const { MongoClient } = require("mongodb");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+//const cors = require("cors");
 const app = express();
-const port = process.env.PORT;
-const uri = process.env.DATABASE_URI2
-
-
-const client = new MongoClient(uri);
-
-
-console.log(process.env.DATABASE_URI , process.env.PORT)
-app.get("/get", async (req, res) => {
-  const result = await Delay.findOne();
-  await new Delay({date:"123"}).save()
-
-  res.send({ result });
+const port = process.env.PORT || 3000;
+const Delay = require("./models/delay.model");
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
 });
+
+// let isTimeout = 1 ;
+// setTimeout(()=>{
+//   if(isTimeout ===1) {
+//     isTimeout = 0
+//   }else {
+//     isTimeout =1
+//   }
+// },10000)
+let changes = []
+let sockets = new Set();
+const pipeline =[
+  {
+    $group: {
+      _id: "$date",
+      average_delay: { $avg: "$delay" },
+    },
+  },
+]
 
 mongoose
   .connect(process.env.DATABASE_URI ,{useNewUrlParser: true} )
   .then(() => {
-    // console.log("database connected");
-    // //Delay.watch().on('change' , data =>console.log(data))
-    // const db = mongoose.connection ;
-    // const delayCollection = db.collection('delay');
-    // delayCollection.watch().on('change' , data =>console.log(data))
+  
   })
   .catch((e) => {console.log(e)
-    
+
   });
-app.listen(port, () => {
+
+io.on("connection", async (socket) => {
+  sockets.add(socket);
+
+ 
+  const docs = await Delay.aggregate([
+    {
+      $group: {
+        _id: "$date",
+        average_delay: { $avg: "$delay" },
+      },
+    },
+  ]).exec();
+  
+  console.log("this")
+  changes = docs
+  io.emit("documents", changes);
+});
+
+
+Delay.watch().on("change",  async () => {
+
+ 
+  const docs = await Delay.aggregate([
+    {
+      $group: {
+        _id: "$date",
+        average_delay: { $avg: "$delay" },
+      },
+    },
+  ]).exec();
+  console.log('that')
+  changes = docs
+ 
+  
+  
+});
+
+setInterval(()=>{
+  io.emit("documents" , changes)
+  console.log("emitted")
+} , 10000)
+  
+
+
+httpServer.listen(port, () => {
   console.log(` app listening on port ${port}`);
 });
-async function run() {
-  try {
-    // Establish and verify connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Connected successfully to server");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
+
+

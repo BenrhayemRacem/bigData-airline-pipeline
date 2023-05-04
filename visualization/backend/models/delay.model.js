@@ -10,5 +10,5 @@ const delaySchema = new mongoose.Schema({
 })
 
 const delay = mongoose.model('delay' , delaySchema ,'delay');
-delay.watch().on('change' , data =>console.log(data))
+//delay.watch().on('change' , _ => {})
 module.exports = delay
