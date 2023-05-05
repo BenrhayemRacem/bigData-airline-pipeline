@@ -1,4 +1,9 @@
 target/
 .vscode/
 2018.csv
-mongo/
+mongo/db/
+node_modules
+package-lock.json
+
+.angular
+

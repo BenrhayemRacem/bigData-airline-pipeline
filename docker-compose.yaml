@@ -34,7 +34,8 @@ services:
       - bigdataProject
 
   bigdata-mongo:
-    image: mongo
+    build : 
+      context: ./mongo/config
     container_name: bigdata-project-mongo-container
     hostname: mongo
     environment:
@@ -44,8 +45,15 @@ services:
       - ./mongo/db:/data/db
     ports:
       - "27017:27017"
+      - 9042:9042
+  
     networks:
       - bigdata-mongo
+    entrypoint:
+     - bash
+     - -c
+     - exec docker-entrypoint.sh $$@ 
+    command: mongod   --keyFile data/replica.key  --replSet rs0 --bind_ip 127.0.0.1,mongo
   bigdata-mongo-express:
     image: mongo-express
     container_name: bigdata-project-mongo-express-container
@@ -57,9 +65,44 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: racem
-      ME_CONFIG_MONGODB_URL: mongodb://root:racem@mongo:27017/
-    restart: unless-stopped
+      ME_CONFIG_MONGODB_URL: mongodb://root:racem@mongo:27017/?authSource=admin&replicaSet=rs0
+      
 
+    restart: unless-stopped
+  
+  bigdata-visualization-backend:
+    container_name: bigdata-visualization-backend
+    build:
+      context: ./visualization/backend
+    ports:
+      - "3000:3000"
+    networks:
+      - bigdata-mongo
+      - bigdata-viz
+    environment:
+      DATABASE_URI : mongodb://root:racem@mongo:27017/airline?authSource=admin&replicaSet=rs0&retryWrites=false
+      PORT : 3000
+    command: npm run start
+    depends_on:
+      - bigdata-mongo
+  
+  # bigdata-visualization-frontend:
+  #   container_name: bigdata-visualization-frontend
+  #   build:
+  #     context: ./visualization/frontend
+  #   ports:
+  #    - "4000:4000"
+  #   networks:
+  #     - bigdata-viz
+  #   depends_on:
+  #     - bigdata-visualization-backend
+  #   command: ng serve
 networks:
-  bigdataProject: {}
-  bigdata-mongo: {}
+
+  bigdataProject : {}
+  bigdata-mongo : {}
+  bigdata-viz : {}
+  
+  
+
+
