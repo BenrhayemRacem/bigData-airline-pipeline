@@ -1,0 +1,21 @@
+
+.global-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+.month-container {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    
+}
+
+.month-title {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: rgb(247, 23, 235);
+}
+

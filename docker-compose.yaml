@@ -80,6 +80,8 @@ services:
     networks:
       - bigdata-mongo
       - bigdata-viz
+      - bigdataProjectBatch
+
     environment:
       DATABASE_URI : mongodb://root:racem@mongo:27017/airline?authSource=admin&replicaSet=rs0&retryWrites=false
       PORT : 3000
@@ -87,21 +89,44 @@ services:
     depends_on:
       - bigdata-mongo
   
-  # bigdata-visualization-frontend:
-  #   container_name: bigdata-visualization-frontend
-  #   build:
-  #     context: ./visualization/frontend
-  #   ports:
-  #    - "4000:4000"
-  #   networks:
-  #     - bigdata-viz
-  #   depends_on:
-  #     - bigdata-visualization-backend
-  #   command: ng serve
+  batch-bigdata-master:
+    image: liliasfaxi/spark-hadoop:hv-2.7.2
+    container_name: batch-bigdata-project-master
+    
+    ports:
+      - "50071:50070"
+      - "8089:8088"
+      - "7078:7077"
+      - "16011:16010"
+    hostname: hadoop-master
+    tty: true
+    networks:
+      - bigdataProjectBatch
+  batch-bigdata-slave1:
+    image: liliasfaxi/spark-hadoop:hv-2.7.2
+    container_name: batch-bigdata-project-slave1
+    ports:
+      - "8045:8042"
+    hostname: hadoop-slave1
+    tty: true
+    networks:
+      - bigdataProjectBatch
+
+  batch-bigdata-slave2:
+    image: liliasfaxi/spark-hadoop:hv-2.7.2
+    container_name: batch-bigdata-project-slave2
+    ports:
+      - "8046:8042"
+    hostname: hadoop-slave2
+    tty: true
+    networks:
+      - bigdataProjectBatch
+
 networks:
   bigdataProject : {}
   bigdata-mongo : {}
   bigdata-viz : {}
+  bigdataProjectBatch : {}
   
   
 
