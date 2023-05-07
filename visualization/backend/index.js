@@ -37,6 +37,7 @@ app.get('/batch' , (req,res)=>{
     method: 'GET',
     url :'http://batch-bigdata-project-master:50070/webhdfs/v1/user/root/output/part-r-00000?op=OPEN'
   }).then((response) =>  res.status(200).json({data:response.data}))
+  .catch((error)=> res.status(500).json({error}))
 })
 
 mongoose

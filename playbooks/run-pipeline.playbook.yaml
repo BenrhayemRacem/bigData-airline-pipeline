@@ -1,0 +1,81 @@
+
+- name: Run Bigdata pipeline
+  hosts : localhost
+  tasks:
+    - name: start containers
+      ansible.builtin.command: chdir=../  docker-compose up  -d
+
+    - name : launch hadoop in batch container
+      ansible.builtin.command: docker exec batch-bigdata-project-master ./start-hadoop.sh
+    
+    - name : build batch processing jar
+      ansible.builtin.command: chdir=../batch-processing/flight-per-day-count mvn package
+
+    - name : copy jar into  batch container 
+      ansible.builtin.command: chdir=../batch-processing/flight-per-day-count/target docker cp flight-per-day-count-1.0-SNAPSHOT.jar batch-bigdata-project-master:/root/ 
+
+    - name : copy dataset to batch container
+      ansible.builtin.command: chdir=../data/cleaned_data/ docker cp 2018.csv batch-bigdata-project-master:/root/ 
+
+    - name: copy batch processing script
+      ansible.builtin.command: chdir=../scripts/ docker cp batchProcessingConfig.sh batch-bigdata-project-master:/root/
+
+    - name: config batch processing container and launch Map/Reduce job
+      ansible.builtin.command: docker exec -d batch-bigdata-project-master bash batchProcessingConfig.sh
+    
+    - name: launch hadoop in streaming container
+      ansible.builtin.command: docker exec bigdata-project-master ./start-hadoop.sh
+    
+     
+
+    - name: copy kafka config to streaming container
+      ansible.builtin.command: chdir=../scripts/ docker cp streamKafkaConfig.sh bigdata-project-master:/root
+
+    - name: launch kafka 
+      ansible.builtin.command: docker exec bigdata-project-master bash streamKafkaConfig.sh
+    
+    - name : copy dataset to streaming  container
+      ansible.builtin.command: chdir=../data/cleaned_data/ docker cp 2018.csv bigdata-project-master:/root
+
+    - name : copy topic config to streaming container
+      ansible.builtin.command: chdir=../scripts/ docker cp createFlightTopic.sh bigdata-project-master:/root
+
+    - name : create Flight Topic
+      ansible.builtin.command: docker exec bigdata-project-master bash createFlightTopic.sh
+
+    - name : copy kafka producer to streaming container
+      ansible.builtin.command: chdir=../kafka/ docker cp SimpleProducer.java bigdata-project-master:/root/
+
+    - name : copy kafka compile script
+      ansible.builtin.command: chdir=../scripts/ docker cp compileKafkaProducer.sh bigdata-project-master:/root/
+    - name : compile kafka producer 
+      ansible.builtin.command: docker exec bigdata-project-master bash compileKafkaProducer.sh
+    
+    - name : build stream processing jar
+      ansible.builtin.command: chdir=../stream-processing/stream-kafka-spark  mvn clean compile assembly:single
+    
+    - name: copy jar into streaming container
+      ansible.builtin.command: chdir=../stream-processing/stream-kafka-spark/target docker cp stream-kafka-spark-1.0-SNAPSHOT-jar-with-dependencies.jar bigdata-project-master:/root
+
+    - name: copy spark run script into streaming container 
+      ansible.builtin.command: chdir=../scripts/ docker cp runSpark.sh  bigdata-project-master:/root/
+
+    - name: launch Spark streaming
+      ansible.builtin.command: docker exec -dti bigdata-project-master sh  runSpark.sh
+    
+    - name: copy kafka producer run script
+      ansible.builtin.command: chdir=../scripts/ docker cp kafkaRun.sh  bigdata-project-master:/root/
+
+    - name: run kafka producer
+      ansible.builtin.command: docker exec -d  bigdata-project-master sh kafkaRun.sh
+    
+    - name: launch visualization
+      ansible.builtin.command: chdir=../visualization/frontend npm run start:dev
+    
+    
+
+    
+      
+        
+      
+        

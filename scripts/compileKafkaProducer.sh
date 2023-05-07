@@ -1,0 +1,1 @@
+javac -cp "$KAFKA_HOME/libs/*":. SimpleProducer.java
