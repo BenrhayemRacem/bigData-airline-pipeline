@@ -2,7 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-//const cors = require("cors");
+const axios = require('axios')
+const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
 const Delay = require("./models/delay.model");
@@ -12,7 +13,7 @@ const io = new Server(httpServer, {
     origin: "*",
   },
 });
-
+app.use(cors())
 // let isTimeout = 1 ;
 // setTimeout(()=>{
 //   if(isTimeout ===1) {
@@ -31,6 +32,13 @@ const pipeline =[
     },
   },
 ]
+app.get('/batch' , (req,res)=>{
+  axios({
+    method: 'GET',
+    url :'http://batch-bigdata-project-master:50070/webhdfs/v1/user/root/output/part-r-00000?op=OPEN'
+  }).then((response) =>  res.status(200).json({data:response.data}))
+  .catch((error)=> res.status(500).json({error}))
+})
 
 mongoose
   .connect(process.env.DATABASE_URI ,{useNewUrlParser: true} )
@@ -81,6 +89,7 @@ Delay.watch().on("change",  async () => {
 setInterval(()=>{
   io.emit("documents" , changes)
   console.log("emitted")
+ 
 } , 10000)
   
 
@@ -88,5 +97,6 @@ setInterval(()=>{
 httpServer.listen(port, () => {
   console.log(` app listening on port ${port}`);
 });
+
 
 
